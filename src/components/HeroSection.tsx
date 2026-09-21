@@ -1,6 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { ArrowUpRight, ChevronRight, Image as ImageIcon, Upload, RefreshCw, X } from 'lucide-react';
-import { contactInfo } from '../data/portfolioData';
+import React from 'react';
+import { ArrowUpRight, ChevronRight } from 'lucide-react';
 
 interface HeroSectionProps {
   onExploreWork: () => void;
@@ -8,74 +7,6 @@ interface HeroSectionProps {
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreWork, onOpenResume }) => {
-  const [imageSrc, setImageSrc] = useState<string | null>(() => {
-    return localStorage.getItem('user_profile_photo') || null;
-  });
-  const [isDragging, setIsDragging] = useState<boolean>(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Check if a static file exists in /profile.jpg or /손정원 여권 파일.jpg
-  useEffect(() => {
-    if (!imageSrc) {
-      const img1 = new Image();
-      img1.src = '/profile.jpg';
-      img1.onload = () => setImageSrc('/profile.jpg');
-      img1.onerror = () => {
-        const img2 = new Image();
-        img2.src = '/손정원 여권 파일.jpg';
-        img2.onload = () => setImageSrc('/손정원 여권 파일.jpg');
-      };
-    }
-  }, [imageSrc]);
-
-  const handleFile = (file: File) => {
-    if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setImageSrc(reader.result);
-        try {
-          localStorage.setItem('user_profile_photo', reader.result);
-        } catch {
-          // Ignore localStorage quota errors
-        }
-      }
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFile(e.dataTransfer.files[0]);
-    }
-  };
-
-  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files[0]);
-    }
-  };
-
-  const handleRemoveImage = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setImageSrc(null);
-    localStorage.removeItem('user_profile_photo');
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
   return (
     <section id="home" className="pt-8 md:pt-14 pb-16 px-4 md:px-8 max-w-6xl mx-auto">
       {/* Top Location & Info */}
@@ -104,76 +35,23 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExploreWork, onOpenR
             </div>
           </div>
 
-          {/* Dedicated Photo Slot Container */}
+          {/* Photo Slot: 손정원 여권 파일.jpg */}
           <div className="mt-6 w-full max-w-sm">
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleFileInputChange} 
-              accept="image/*" 
-              className="hidden" 
-            />
-
-            {imageSrc ? (
-              /* Display loaded image with clean frame & controls */
-              <div className="relative group rounded-2xl overflow-hidden bg-white border border-[#1a1a1a]/15 shadow-sm p-2">
-                <img 
-                  src={imageSrc} 
-                  alt="손정원 프로필 사진" 
-                  className="w-full h-auto max-h-[380px] object-contain rounded-xl mx-auto block"
-                />
-                
-                {/* Overlay actions on hover */}
-                <div className="absolute top-4 right-4 flex items-center gap-2 opacity-90 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    className="px-2.5 py-1.5 rounded-lg bg-black/70 hover:bg-black text-white text-xs font-medium backdrop-blur-xs flex items-center gap-1.5 transition-colors shadow-xs"
-                    title="다른 사진으로 변경"
-                  >
-                    <RefreshCw size={12} />
-                    <span>사진 변경</span>
-                  </button>
-                  <button
-                    onClick={handleRemoveImage}
-                    className="p-1.5 rounded-lg bg-red-600/80 hover:bg-red-600 text-white transition-colors shadow-xs"
-                    title="사진 지우기"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              </div>
-            ) : (
-              /* Empty Placeholder Slot with click & drag-and-drop */
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                className={`relative cursor-pointer rounded-2xl border-2 border-dashed p-6 sm:p-8 flex flex-col items-center justify-center text-center transition-all duration-200 ${
-                  isDragging
-                    ? 'border-[#1c1c1c] bg-[#ded8c7]/50 scale-[1.01]'
-                    : 'border-[#1a1a1a]/25 hover:border-[#1a1a1a]/60 bg-[#e6e1d3]/40 hover:bg-[#e6e1d3]/70'
-                }`}
-                style={{ minHeight: '260px' }}
-              >
-                <div className="w-12 h-12 rounded-full bg-[#1a1a1a]/10 flex items-center justify-center text-[#1c1c1c] mb-3">
-                  <ImageIcon size={24} />
-                </div>
-
-                <div className="text-sm font-bold text-[#141414] font-display">
-                  프로필 사진 영역
-                </div>
-
-                <p className="text-xs text-[#6c685f] mt-1.5 max-w-[220px] leading-relaxed">
-                  클릭하거나 이미지를 여기로 드래그하여 바로 등록할 수 있습니다.
-                </p>
-
-                <div className="mt-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#eeeade] border border-[#1a1a1a]/15 text-[11px] font-mono text-[#4a473e]">
-                  <Upload size={12} />
-                  <span>JPG / PNG 파일 지원</span>
-                </div>
-              </div>
-            )}
+            <div className="rounded-2xl overflow-hidden bg-white border border-[#1a1a1a]/15 shadow-sm p-2">
+              <img 
+                src="/손정원 여권 파일.jpg" 
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (!target.dataset.tried) {
+                    target.dataset.tried = "true";
+                    target.src = "/profile.jpg";
+                  }
+                }}
+                alt="손정원 (Jeongwon Son)" 
+                className="w-full h-auto max-h-[380px] object-contain rounded-xl mx-auto block"
+                referrerPolicy="no-referrer"
+              />
+            </div>
           </div>
         </div>
 
